@@ -56,7 +56,7 @@ class RR : public Scheduler{
             }
 
             // 3. 1초 작업 실행
-            current_time_++;
+            current_time_+= 1.00;
             current_job_.remain_time--;
             left_slice_--;
 
@@ -154,7 +154,7 @@ public:
             }
             if (current_job_.name == 0) {
                 // 실행할 작업이 없으면 idle도 없고, 그냥 시간만 증가
-                current_time_++;
+                current_time_+= 1.00;
                 return -1;
             }
         }
@@ -165,7 +165,7 @@ public:
         }
 
         // 4. 1초 작업 실행
-        current_time_++;
+        current_time_+= 1.00;
         current_job_.remain_time--;
         left_slice_--;
 
@@ -247,7 +247,7 @@ class Lottery : public Scheduler{
             }
         
             // 5. 1초 작업 실행
-            current_time_++;
+            current_time_+= 1.00;
             current_job_.remain_time--;
         
             // 6. 작업이 완료된 경우
@@ -322,7 +322,7 @@ class Stride : public Scheduler{
             }
         
             // 4. 1초 작업 실행
-            current_time_++;
+            current_time_+= 1.00;
             current_job_.remain_time--;
         
             // 5. 작업 완료된 경우
