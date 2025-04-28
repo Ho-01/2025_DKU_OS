@@ -246,7 +246,7 @@ class Stride : public Scheduler{
             }
         
             // 1. 랜덤으로 승자 티켓 뽑기
-            winner = getRandomNumber(1, total_tickets);
+            const int winner = getRandomNumber(1, total_tickets);
         
             // 2. 승자 티켓에 해당하는 작업 찾기
             int ticket_sum = 0;
