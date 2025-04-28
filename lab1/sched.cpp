@@ -52,7 +52,7 @@ class RR : public Scheduler{
                 current_job_.first_run_time = current_time_;
             }
         
-            double exec_time = std::min({left_slice_, current_job_.remain_time, 1.0});
+            double exec_time = std::min({(double)left_slice_, current_job_.remain_time, 1.0});
             current_time_ += exec_time;
             current_job_.remain_time -= exec_time;
             left_slice_ -= exec_time;
