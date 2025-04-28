@@ -34,7 +34,6 @@ class RR : public Scheduler{
         }
 
         int run() override {
-            // 1. 현재 작업이 없는 경우 (처음이거나 이전 작업 끝났을 때)
             if (current_job_.name == 0) {
                 if (!waiting_queue.empty()) {
                     current_job_ = waiting_queue.front();
@@ -45,27 +44,23 @@ class RR : public Scheduler{
                     job_queue_.pop();
                     left_slice_ = time_slice_;
                 } else {
-                    // 작업도 없고 대기열도 없으면 모든 작업 완료
                     return -1;
                 }
             }
-
-            // 2. 현재 작업이 처음 실행되는 경우
+        
             if (current_job_.service_time == current_job_.remain_time) {
                 current_job_.first_run_time = current_time_;
             }
-
-            // 3. 1초 작업 실행
-            current_time_+= 1.00;
-            current_job_.remain_time--;
-            left_slice_--;
-
-            // 4. 작업 완료된 경우
+        
+            double exec_time = std::min({left_slice_, current_job_.remain_time, 1.0});
+            current_time_ += exec_time;
+            current_job_.remain_time -= exec_time;
+            left_slice_ -= exec_time;
+        
             if (current_job_.remain_time == 0) {
                 current_job_.completion_time = current_time_;
                 end_jobs_.push_back(current_job_);
-
-                // 다음 작업 로딩
+        
                 if (!waiting_queue.empty()) {
                     current_job_ = waiting_queue.front();
                     waiting_queue.pop();
@@ -77,15 +72,12 @@ class RR : public Scheduler{
                     left_slice_ = time_slice_;
                     current_time_ += switch_time_;
                 } else {
-                    // 더 이상 남은 작업 없음
                     return -1;
                 }
             }
-
-            // 5. time slice가 끝난 경우 -> 현재 작업을 waiting_queue 뒤로 보내고 교체
             else if (left_slice_ == 0) {
                 waiting_queue.push(current_job_);
-
+        
                 if (!waiting_queue.empty()) {
                     current_job_ = waiting_queue.front();
                     waiting_queue.pop();
@@ -100,10 +92,10 @@ class RR : public Scheduler{
                     return -1;
                 }
             }
-
-            // 6. 현재 실행 중인 작업 이름 반환
+        
             return current_job_.name;
         }
+        
                 
 };
 
