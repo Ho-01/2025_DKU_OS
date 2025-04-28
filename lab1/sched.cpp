@@ -34,69 +34,59 @@ class RR : public Scheduler{
         }
 
         int run() override {
+            // 0. 새로 도착한 job이 있으면 waiting_queue로
+            while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
+                waiting_queue.push(job_queue_.front());
+                job_queue_.pop();
+            }
+    
+            // 1. 현재 작업이 없으면 waiting queue에서 가져오기
             if (current_job_.name == 0) {
-                if (!waiting_queue.empty()) {
-                    current_job_ = waiting_queue.front();
-                    waiting_queue.pop();
-                    left_slice_ = time_slice_;
-                } else if (!job_queue_.empty()) {
-                    current_job_ = job_queue_.front();
-                    job_queue_.pop();
-                    left_slice_ = time_slice_;
-                } else {
+                if (waiting_queue.empty()) {
+                    // 할 일이 없으면
                     return -1;
                 }
+                current_job_ = waiting_queue.front();
+                waiting_queue.pop();
+                left_slice_ = time_slice_;
             }
-        
+    
+            // 2. 첫 실행이라면 first_run_time 기록
             if (current_job_.service_time == current_job_.remain_time) {
                 current_job_.first_run_time = current_time_;
             }
-        
-            double exec_time = std::min((double)left_slice_, std::min((double)current_job_.remain_time, 1.0));
-            current_time_ += exec_time;
-            current_job_.remain_time -= exec_time;
-            left_slice_ -= exec_time;
-        
+    
+            // 3. 1초 실행
+            current_time_ += 1.0;
+            current_job_.remain_time -= 1;
+            left_slice_ -= 1;
+    
+            // 4. 새로 도착한 job이 있는지 다시 체크
+            while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
+                waiting_queue.push(job_queue_.front());
+                job_queue_.pop();
+            }
+    
+            // 5. 현재 작업 완료
             if (current_job_.remain_time == 0) {
                 current_job_.completion_time = current_time_;
                 end_jobs_.push_back(current_job_);
-        
-                if (!waiting_queue.empty()) {
-                    current_job_ = waiting_queue.front();
-                    waiting_queue.pop();
-                    left_slice_ = time_slice_;
-                    current_time_ += switch_time_;
-                } else if (!job_queue_.empty()) {
-                    current_job_ = job_queue_.front();
-                    job_queue_.pop();
-                    left_slice_ = time_slice_;
-                    current_time_ += switch_time_;
-                } else {
-                    return -1;
-                }
+                current_job_ = Job(); // 비우기
+                current_time_ += switch_time_; // 문맥 전환 시간 적용
+                return 0; // 아무것도 없는 이름으로 잠시 - 다음 run에서 다시 선택
             }
-            else if (left_slice_ == 0) {
+    
+            // 6. time slice 소모 완료
+            if (left_slice_ == 0) {
                 waiting_queue.push(current_job_);
-        
-                if (!waiting_queue.empty()) {
-                    current_job_ = waiting_queue.front();
-                    waiting_queue.pop();
-                    left_slice_ = time_slice_;
-                    current_time_ += switch_time_;
-                } else if (!job_queue_.empty()) {
-                    current_job_ = job_queue_.front();
-                    job_queue_.pop();
-                    left_slice_ = time_slice_;
-                    current_time_ += switch_time_;
-                } else {
-                    return -1;
-                }
+                current_job_ = Job(); // 비우기
+                current_time_ += switch_time_; // 문맥 전환 시간 적용
+                return 0;
             }
-        
+    
+            // 7. 아직 실행 중이면 현재 작업 이름 반환
             return current_job_.name;
-        }
-        
-                
+        }       
 };
 
 class FeedBack : public Scheduler {
