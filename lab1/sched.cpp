@@ -21,6 +21,7 @@ class RR : public Scheduler{
         int time_slice_;
         int left_slice_;
         std::queue<Job> waiting_queue;
+        bool need_context_switch = false;
 
     public:
         RR(std::queue<Job> jobs, double switch_overhead, int time_slice) : Scheduler(jobs, switch_overhead) {
