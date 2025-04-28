@@ -35,64 +35,69 @@ class RR : public Scheduler{
 
 
         int run() override {
-            // (1) 우선 현재 시간(current_time_)까지 도착한 job들을 waiting_queue로 옮긴다
+            // 1. 현재 시간에 도착하는 작업들을 ready_queue에 추가
             while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
-                waiting_queue.push(job_queue_.front());
+                ready_queue.push(job_queue_.front());
                 job_queue_.pop();
             }
     
-            // (2) 실행할 작업이 없으면 (waiting_queue 비었으면)
-            if (current_job_.name == 0 && waiting_queue.empty()) {
-                if (!job_queue_.empty()) {
-                    // 다음 작업 arrival_time까지 시간 jump
-                    current_time_ = job_queue_.front().arrival_time;
-                    // jump한 시간에 맞춰 waiting_queue 업데이트
-                    while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
-                        waiting_queue.push(job_queue_.front());
-                        job_queue_.pop();
+            // 2. 현재 실행 중인 작업이 없는 경우, ready_queue에서 꺼내기
+            if (current_job_.name == 0) {
+                if (ready_queue.empty()) {
+                    // (idle 방지) 아직 도착 안한 작업이 있으면 시간 jump
+                    if (!job_queue_.empty()) {
+                        current_time_ = job_queue_.front().arrival_time;
+                        return run(); // 다시 run 호출해서 처리
                     }
-                } else {
-                    // 모든 작업 완료
-                    return -1;
+                    return -1; // 모든 작업이 끝났으면
                 }
-            }
     
-            // (3) 현재 실행할 작업이 없는 경우 (처음이거나 교체된 경우)
-            if (current_job_.name == 0 && !waiting_queue.empty()) {
-                current_job_ = waiting_queue.front();
-                waiting_queue.pop();
+                current_job_ = ready_queue.front();
+                ready_queue.pop();
                 left_slice_ = time_slice_;
     
-                // **처음 실행하는 작업이면 first_run_time 기록**
-                if (current_job_.first_run_time == -1) { // first_run_time 초기값이 -1이라고 가정
+                // 처음 실행하는 경우 first_run_time 기록
+                if (current_job_.remain_time == current_job_.service_time) {
                     current_job_.first_run_time = current_time_;
                 }
             }
     
-            // (4) 1초만큼 작업 수행
-            current_job_.remain_time--;
-            left_slice_--;
+            // 3. 작업 1초 실행
             current_time_ += 1.0;
+            current_job_.remain_time -= 1;
+            left_slice_ -= 1;
     
-            // (5) 작업 완료 처리
+            // 4. 실행한 후 도착한 작업들을 ready_queue에 추가
+            while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
+                ready_queue.push(job_queue_.front());
+                job_queue_.pop();
+            }
+    
+            // 5. 현재 작업이 끝났으면
             if (current_job_.remain_time == 0) {
                 current_job_.completion_time = current_time_;
                 end_jobs_.push_back(current_job_);
-                current_job_ = Job(); // 빈 job으로 초기화
+                current_job_ = Job(); // 빈 작업으로 초기화
+                left_slice_ = time_slice_;
     
-                // context switch 시간 추가
-                current_time_ += switch_time_;
+                // 문맥 교환 시간 추가
+                if (!ready_queue.empty() || !job_queue_.empty()) {
+                    current_time_ += switch_time_;
+                }
             }
-            // (6) time slice 종료 -> 현재 작업을 waiting_queue 뒤로 보내고 교체
+            // 6. Time Slice가 끝났으면 -> ready_queue 뒤로 보내기
             else if (left_slice_ == 0) {
-                waiting_queue.push(current_job_);
-                current_job_ = Job(); // 빈 job으로 초기화
+                ready_queue.push(current_job_);
+                current_job_ = Job();
+                left_slice_ = time_slice_;
     
-                // context switch 시간 추가
-                current_time_ += switch_time_;
+                // 문맥 교환 시간 추가
+                if (!ready_queue.empty() || !job_queue_.empty()) {
+                    current_time_ += switch_time_;
+                }
             }
     
-            // (7) 현재 실행 중인 작업 이름 반환
+            // 7. 현재 실행하는 작업 이름 리턴
             return current_job_.name;
         }
 };
