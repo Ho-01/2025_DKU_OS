@@ -34,59 +34,64 @@ class RR : public Scheduler{
         }
 
         int run() override {
-            // 0. 새로 도착한 job이 있으면 waiting_queue로
+            // 0. context switch 시간 반영
+            if (need_context_switch) {
+                current_time_ += switch_time_;
+                need_context_switch = false;
+            }
+    
+            // 1. 새로운 job arrival
             while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
                 waiting_queue.push(job_queue_.front());
                 job_queue_.pop();
             }
     
-            // 1. 현재 작업이 없으면 waiting queue에서 가져오기
+            // 2. 현재 실행할 job이 없는 경우
             if (current_job_.name == 0) {
                 if (waiting_queue.empty()) {
-                    // 할 일이 없으면
-                    return -1;
+                    return -1; // 할 작업 없음
                 }
                 current_job_ = waiting_queue.front();
                 waiting_queue.pop();
                 left_slice_ = time_slice_;
             }
     
-            // 2. 첫 실행이라면 first_run_time 기록
+            // 3. 처음 실행하는 경우
             if (current_job_.service_time == current_job_.remain_time) {
                 current_job_.first_run_time = current_time_;
             }
     
-            // 3. 1초 실행
+            // 4. 1초 실행
             current_time_ += 1.0;
             current_job_.remain_time -= 1;
             left_slice_ -= 1;
     
-            // 4. 새로 도착한 job이 있는지 다시 체크
+            // 5. 새로 arrival한 job 추가
             while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
                 waiting_queue.push(job_queue_.front());
                 job_queue_.pop();
             }
     
-            // 5. 현재 작업 완료
+            // 6. 작업 종료
             if (current_job_.remain_time == 0) {
                 current_job_.completion_time = current_time_;
                 end_jobs_.push_back(current_job_);
-                current_job_ = Job(); // 비우기
-                current_time_ += switch_time_; // 문맥 전환 시간 적용
-                return 0; // 아무것도 없는 이름으로 잠시 - 다음 run에서 다시 선택
+                current_job_ = Job(); // 비움
+                need_context_switch = true; // 다음 run()에서 context switch 적용
             }
-    
-            // 6. time slice 소모 완료
-            if (left_slice_ == 0) {
+            // 7. time slice 종료
+            else if (left_slice_ == 0) {
                 waiting_queue.push(current_job_);
-                current_job_ = Job(); // 비우기
-                current_time_ += switch_time_; // 문맥 전환 시간 적용
-                return 0;
+                current_job_ = Job(); // 비움
+                need_context_switch = true; // 다음 run()에서 context switch 적용
             }
     
-            // 7. 아직 실행 중이면 현재 작업 이름 반환
-            return current_job_.name;
-        }       
+            // 8. 현재 실행중인 job 반환
+            if (current_job_.name != 0)
+                return current_job_.name;
+            else
+                return 0; // 현재 작업이 없으면 0 반환 (중간)
+        }     
 };
 
 class FeedBack : public Scheduler {
