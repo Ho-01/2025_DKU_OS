@@ -21,7 +21,6 @@ class RR : public Scheduler{
         int time_slice_;
         int left_slice_;
         std::queue<Job> waiting_queue;
-        bool need_context_switch = false;
 
     public:
         RR(std::queue<Job> jobs, double switch_overhead, int time_slice) : Scheduler(jobs, switch_overhead) {
@@ -34,80 +33,67 @@ class RR : public Scheduler{
             left_slice_ = time_slice;
         }
 
+
         int run() override {
-            // 1. Context Switch 적용
-            if (need_context_switch) {
-                current_time_ += switch_time_;
-                need_context_switch = false;
-            }
-    
-            // 2. 새로운 작업이 도착했는지 확인하고 waiting_queue에 추가
+            // (1) 우선 현재 시간(current_time_)까지 도착한 job들을 waiting_queue로 옮긴다
             while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
                 waiting_queue.push(job_queue_.front());
                 job_queue_.pop();
             }
     
-            // 3. 현재 실행할 작업이 없으면 새로 고른다
-            if (current_job_.name == 0) {
-                if (waiting_queue.empty()) {
-                    // CPU Idle - 다음 job의 arrival_time까지 점프
-                    if (!job_queue_.empty()) {
-                        current_time_ = job_queue_.front().arrival_time;
-                        while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
-                            waiting_queue.push(job_queue_.front());
-                            job_queue_.pop();
-                        }
-                    } else {
-                        return -1; // 모든 작업 종료
+            // (2) 실행할 작업이 없으면 (waiting_queue 비었으면)
+            if (current_job_.name == 0 && waiting_queue.empty()) {
+                if (!job_queue_.empty()) {
+                    // 다음 작업 arrival_time까지 시간 jump
+                    current_time_ = job_queue_.front().arrival_time;
+                    // jump한 시간에 맞춰 waiting_queue 업데이트
+                    while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
+                        waiting_queue.push(job_queue_.front());
+                        job_queue_.pop();
                     }
+                } else {
+                    // 모든 작업 완료
+                    return -1;
                 }
+            }
     
+            // (3) 현재 실행할 작업이 없는 경우 (처음이거나 교체된 경우)
+            if (current_job_.name == 0 && !waiting_queue.empty()) {
                 current_job_ = waiting_queue.front();
                 waiting_queue.pop();
                 left_slice_ = time_slice_;
     
-                if (current_job_.first_run_time == -1) {
+                // **처음 실행하는 작업이면 first_run_time 기록**
+                if (current_job_.first_run_time == -1) { // first_run_time 초기값이 -1이라고 가정
                     current_job_.first_run_time = current_time_;
                 }
             }
     
-            // 4. 작업 실행 (1초)
-            current_time_ += 1.0;
+            // (4) 1초만큼 작업 수행
             current_job_.remain_time--;
             left_slice_--;
+            current_time_ += 1.0;
     
-            // 5. 새로운 작업이 도착했는지 다시 확인
-            while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
-                waiting_queue.push(job_queue_.front());
-                job_queue_.pop();
-            }
-    
-            // 6. 현재 작업 완료 처리
+            // (5) 작업 완료 처리
             if (current_job_.remain_time == 0) {
                 current_job_.completion_time = current_time_;
                 end_jobs_.push_back(current_job_);
-                current_job_ = Job(); // 초기화
-                need_context_switch = true;
+                current_job_ = Job(); // 빈 job으로 초기화
+    
+                // context switch 시간 추가
+                current_time_ += switch_time_;
             }
-            // 7. 타임슬라이스 초과한 경우
+            // (6) time slice 종료 -> 현재 작업을 waiting_queue 뒤로 보내고 교체
             else if (left_slice_ == 0) {
                 waiting_queue.push(current_job_);
-                current_job_ = Job(); // 초기화
-                need_context_switch = true;
+                current_job_ = Job(); // 빈 job으로 초기화
+    
+                // context switch 시간 추가
+                current_time_ += switch_time_;
             }
     
-            // 8. 다음 실행될 프로세스 이름 리턴
-            if (current_job_.name != 0) {
-                return current_job_.name;
-            } else {
-                if (!waiting_queue.empty()) {
-                    return waiting_queue.front().name;
-                } else if (!job_queue_.empty()) {
-                    return job_queue_.front().name;
-                } else {
-                    return -1;
-                }
-            }
+            // (7) 현재 실행 중인 작업 이름 반환
+            return current_job_.name;
         }
 };
 
