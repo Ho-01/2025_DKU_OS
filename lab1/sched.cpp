@@ -35,15 +35,15 @@ class RR : public Scheduler{
 
 
         int run() override {
-            // 1. 현재 시간에 도착하는 작업들을 ready_queue에 추가
+            // 1. 현재 시간에 도착하는 작업들을 waiting_queue에 추가
             while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
-                ready_queue.push(job_queue_.front());
+                waiting_queue.push(job_queue_.front());
                 job_queue_.pop();
             }
     
-            // 2. 현재 실행 중인 작업이 없는 경우, ready_queue에서 꺼내기
+            // 2. 현재 실행 중인 작업이 없는 경우, waiting_queue에서 꺼내기
             if (current_job_.name == 0) {
-                if (ready_queue.empty()) {
+                if (waiting_queue.empty()) {
                     // (idle 방지) 아직 도착 안한 작업이 있으면 시간 jump
                     if (!job_queue_.empty()) {
                         current_time_ = job_queue_.front().arrival_time;
@@ -52,8 +52,8 @@ class RR : public Scheduler{
                     return -1; // 모든 작업이 끝났으면
                 }
     
-                current_job_ = ready_queue.front();
-                ready_queue.pop();
+                current_job_ = waiting_queue.front();
+                waiting_queue.pop();
                 left_slice_ = time_slice_;
     
                 // 처음 실행하는 경우 first_run_time 기록
@@ -67,9 +67,9 @@ class RR : public Scheduler{
             current_job_.remain_time -= 1;
             left_slice_ -= 1;
     
-            // 4. 실행한 후 도착한 작업들을 ready_queue에 추가
+            // 4. 실행한 후 도착한 작업들을 waiting_queue에 추가
             while (!job_queue_.empty() && job_queue_.front().arrival_time <= current_time_) {
-                ready_queue.push(job_queue_.front());
+                waiting_queue.push(job_queue_.front());
                 job_queue_.pop();
             }
     
@@ -81,18 +81,18 @@ class RR : public Scheduler{
                 left_slice_ = time_slice_;
     
                 // 문맥 교환 시간 추가
-                if (!ready_queue.empty() || !job_queue_.empty()) {
+                if (!waiting_queue.empty() || !job_queue_.empty()) {
                     current_time_ += switch_time_;
                 }
             }
-            // 6. Time Slice가 끝났으면 -> ready_queue 뒤로 보내기
+            // 6. Time Slice가 끝났으면 -> waiting_queue 뒤로 보내기
             else if (left_slice_ == 0) {
-                ready_queue.push(current_job_);
+                waiting_queue.push(current_job_);
                 current_job_ = Job();
                 left_slice_ = time_slice_;
     
                 // 문맥 교환 시간 추가
-                if (!ready_queue.empty() || !job_queue_.empty()) {
+                if (!waiting_queue.empty() || !job_queue_.empty()) {
                     current_time_ += switch_time_;
                 }
             }
