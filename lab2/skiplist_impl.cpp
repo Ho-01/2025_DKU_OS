@@ -156,12 +156,14 @@ void CoarseSkipList::insert(int key, int value) {
 
     if (current && current->key == key) {
         current->value += value;
+        current->upd_cnt++;  // ✅ 업데이트 횟수 증가
     } else {
         int new_level = random_level();
         Node* new_node = new Node();
         new_node->key = key;
         new_node->value = value;
         new_node->level = new_level;
+        new_node->upd_cnt = 0;  // ✅ 초기화
 
         new_node->forward = new Node*[new_level + 1];
         for (int i = 0; i <= new_level; i++) {
