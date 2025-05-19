@@ -1,9 +1,9 @@
 /*
 *	DKU Operating System Lab
 *	    Lab2 (Concurrent Data Structure : Skip List)
-*	    Student id : 
-*	    Student name : 
-*	    Date : 
+*	    Student id : 32190789
+*	    Student name : 김승호
+*	    Date : 2025-05-19
 */
 
 #include "skiplist_impl.h"
@@ -60,14 +60,67 @@ SkipList::~SkipList() {}
 
 void SkipList::insert(int key, int value) {
     // TODO
+    Node* update[max_level_ + 1];
+    Node* current = header_;
+
+    for (int i = max_level_; i >= 0; i--) {
+        while (current->forward[i] && current->forward[i]->key < key) {
+            current = current->forward[i];
+        }
+        update[i] = current;
+    }
+
+    current = current->forward[0];
+
+    if (current && current->key == key) {
+        current->value += value;
+        current->upd_cnt++;
+    } else {
+        int new_level = random_level();
+        Node* new_node = new Node(key, value, new_level);
+
+        for (int i = 0; i <= new_level; i++) {
+            new_node->forward[i] = update[i]->forward[i];
+            update[i]->forward[i] = new_node;
+        }
+    }
 }
 
 int SkipList::lookup(int key) {
     // TODO
+    Node* current = header_;
+
+    for (int i = max_level_; i >= 0; i--) {
+        while (current->forward[i] && current->forward[i]->key < key) {
+            current = current->forward[i];
+        }
+    }
+
+    current = current->forward[0];
+    return (current && current->key == key) ? current->value : 0;
 }
 
 void SkipList::remove(int key) {
     // TODO
+    Node* update[max_level_ + 1];
+    Node* current = header_;
+
+    for (int i = max_level_; i >= 0; i--) {
+        while (current->forward[i] && current->forward[i]->key < key) {
+            current = current->forward[i];
+        }
+        update[i] = current;
+    }
+
+    current = current->forward[0];
+
+    if (current && current->key == key) {
+        for (int i = 0; i <= max_level_; i++) {
+            if (update[i]->forward[i] != current) break;
+            update[i]->forward[i] = current->forward[i];
+        }
+        delete current;
+    }
 }
 
 // CoarseSkipList 생성자
@@ -82,14 +135,24 @@ CoarseSkipList::~CoarseSkipList() {
 
 void CoarseSkipList::insert(int key, int value) {
     // TODO
+    pthread_mutex_lock(&mutex_lock);
+    SkipList::insert(key, value);
+    pthread_mutex_unlock(&mutex_lock);
 }
 
 int CoarseSkipList::lookup(int key) {
     // TODO
+    pthread_mutex_lock(&mutex_lock);
+    int value = SkipList::lookup(key);
+    pthread_mutex_unlock(&mutex_lock);
+    return value;
 }
 
 void CoarseSkipList::remove(int key) {
     // TODO
+    pthread_mutex_lock(&mutex_lock);
+    SkipList::remove(key);
+    pthread_mutex_unlock(&mutex_lock);
 }
 
 // FineSkipList 생성자
@@ -125,12 +188,22 @@ FineSkipList::~FineSkipList() {
 
 void FineSkipList::insert(int key, int value) {
     // TODO
+    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    SkipList::insert(key, value);
+    pthread_mutex_unlock(&((FineNode*)header_)->lock);
 }
 
 int FineSkipList::lookup(int key) {
     // TODO
+    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    int value = SkipList::lookup(key);
+    pthread_mutex_unlock(&((FineNode*)header_)->lock);
+    return value;
 }
 
 void FineSkipList::remove(int key) {
     // TODO
+    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    SkipList::remove(key);
+    pthread_mutex_unlock(&((FineNode*)header_)->lock);
 }
