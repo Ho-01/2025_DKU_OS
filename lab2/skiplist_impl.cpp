@@ -141,14 +141,52 @@ CoarseSkipList::~CoarseSkipList() {
 void CoarseSkipList::insert(int key, int value) {
     // TODO
     pthread_mutex_lock(&mutex_lock);
-    this->insert(key, value);
+
+    Node* update[max_level_ + 1];
+    Node* current = header_;
+
+    for (int i = max_level_; i >= 0; i--) {
+        while (current->forward[i] && current->forward[i]->key < key) {
+            current = current->forward[i];
+        }
+        update[i] = current;
+    }
+
+    current = current->forward[0];
+
+    if (current && current->key == key) {
+        current->value += value;
+    } else {
+        int new_level = random_level();
+        Node* new_node = new Node();
+        new_node->key = key;
+        new_node->value = value;
+        new_node->level = new_level;
+
+        new_node->forward = new Node*[new_level + 1];
+        for (int i = 0; i <= new_level; i++) {
+            new_node->forward[i] = update[i]->forward[i];
+            update[i]->forward[i] = new_node;
+        }
+    }
+
     pthread_mutex_unlock(&mutex_lock);
 }
 
 int CoarseSkipList::lookup(int key) {
     // TODO
     pthread_mutex_lock(&mutex_lock);
-    int value = this->lookup(key);
+
+    Node* current = header_;
+    for (int i = max_level_; i >= 0; i--) {
+        while (current->forward[i] && current->forward[i]->key < key) {
+            current = current->forward[i];
+        }
+    }
+
+    current = current->forward[0];
+    int value = (current && current->key == key) ? current->value : 0;
+
     pthread_mutex_unlock(&mutex_lock);
     return value;
 }
@@ -156,7 +194,27 @@ int CoarseSkipList::lookup(int key) {
 void CoarseSkipList::remove(int key) {
     // TODO
     pthread_mutex_lock(&mutex_lock);
-    this->remove(key);
+
+    Node* update[max_level_ + 1];
+    Node* current = header_;
+
+    for (int i = max_level_; i >= 0; i--) {
+        while (current->forward[i] && current->forward[i]->key < key) {
+            current = current->forward[i];
+        }
+        update[i] = current;
+    }
+
+    current = current->forward[0];
+
+    if (current && current->key == key) {
+        for (int i = 0; i <= max_level_; i++) {
+            if (update[i]->forward[i] != current) break;
+            update[i]->forward[i] = current->forward[i];
+        }
+        delete current;
+    }
+
     pthread_mutex_unlock(&mutex_lock);
 }
 
