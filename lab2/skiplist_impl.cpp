@@ -77,8 +77,13 @@ void SkipList::insert(int key, int value) {
         current->upd_cnt++;
     } else {
         int new_level = random_level();
-        Node* new_node = new Node(key, value, new_level);
+        Node* new_node = new Node();
+        new_node->key = key;
+        new_node->value = value;
+        new_node->upd_cnt = 0;
+        new_node->level = new_level;
 
+        new_node->forward = new Node*[new_level + 1];
         for (int i = 0; i <= new_level; i++) {
             new_node->forward[i] = update[i]->forward[i];
             update[i]->forward[i] = new_node;
