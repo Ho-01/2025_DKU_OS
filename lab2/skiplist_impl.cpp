@@ -148,7 +148,7 @@ void CoarseSkipList::insert(int key, int value) {
 int CoarseSkipList::lookup(int key) {
     // TODO
     pthread_mutex_lock(&mutex_lock);
-    int value = SkipList::lookup(key);
+    int value = this->SkipList::lookup(key);
     pthread_mutex_unlock(&mutex_lock);
     return value;
 }
@@ -156,7 +156,7 @@ int CoarseSkipList::lookup(int key) {
 void CoarseSkipList::remove(int key) {
     // TODO
     pthread_mutex_lock(&mutex_lock);
-    SkipList::remove(key);
+    this->SkipList::remove(key);
     pthread_mutex_unlock(&mutex_lock);
 }
 
@@ -193,31 +193,22 @@ FineSkipList::~FineSkipList() {
 
 void FineSkipList::insert(int key, int value) {
     // TODO
-    FineNode* current = (FineNode*)header_;
-    pthread_mutex_lock(&current->lock);
-
-    SkipList::insert(key, value);
-
-    pthread_mutex_unlock(&current->lock);
+    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    this->SkipList::insert(key, value);
+    pthread_mutex_unlock(&((FineNode*)header_)->lock);
 }
 
 int FineSkipList::lookup(int key) {
     // TODO
-    FineNode* current = (FineNode*)header_;
-    pthread_mutex_lock(&current->lock);
-
-    int value = SkipList::lookup(key);
-
-    pthread_mutex_unlock(&current->lock);
+    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    int value = this->SkipList::lookup(key);
+    pthread_mutex_unlock(&((FineNode*)header_)->lock);
     return value;
 }
 
 void FineSkipList::remove(int key) {
     // TODO
-    FineNode* current = (FineNode*)header_;
-    pthread_mutex_lock(&current->lock);
-
-    SkipList::remove(key);
-
-    pthread_mutex_unlock(&current->lock);
+    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    this->SkipList::remove(key);
+    pthread_mutex_unlock(&((FineNode*)header_)->lock);
 }
