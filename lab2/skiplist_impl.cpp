@@ -193,22 +193,31 @@ FineSkipList::~FineSkipList() {
 
 void FineSkipList::insert(int key, int value) {
     // TODO
-    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    FineNode* current = (FineNode*)header_;
+    pthread_mutex_lock(&current->lock);
+
     SkipList::insert(key, value);
-    pthread_mutex_unlock(&((FineNode*)header_)->lock);
+
+    pthread_mutex_unlock(&current->lock);
 }
 
 int FineSkipList::lookup(int key) {
     // TODO
-    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    FineNode* current = (FineNode*)header_;
+    pthread_mutex_lock(&current->lock);
+
     int value = SkipList::lookup(key);
-    pthread_mutex_unlock(&((FineNode*)header_)->lock);
+
+    pthread_mutex_unlock(&current->lock);
     return value;
 }
 
 void FineSkipList::remove(int key) {
     // TODO
-    pthread_mutex_lock(&((FineNode*)header_)->lock);
+    FineNode* current = (FineNode*)header_;
+    pthread_mutex_lock(&current->lock);
+
     SkipList::remove(key);
-    pthread_mutex_unlock(&((FineNode*)header_)->lock);
+
+    pthread_mutex_unlock(&current->lock);
 }
