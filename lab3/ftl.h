@@ -37,7 +37,6 @@ struct Block {
 
 class FlashTranslationLayer {
     private:
-
     public:
         std::string name;
         // 블록 배열
@@ -58,7 +57,7 @@ class FlashTranslationLayer {
         // 생성자
         FlashTranslationLayer(int total_blocks, int block_size) 
             : total_blocks(total_blocks), block_size(block_size), L2P(total_blocks * block_size, -1),
-            total_logical_writes(0), total_physical_writes(0), access_counter(0) {
+            total_logical_writes(0), total_physical_writes(0) {
             name = "Default";
 
             // L2P 테이블 초기화

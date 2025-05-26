@@ -13,9 +13,9 @@
 
 // 워크로드 항목을 나타내는 구조체
 struct WorkloadItem {
-    char operation;  // 'R' 또는 'W'
-    int lpn;        // Logical Page Number
-    int data; // 데이터 (읽기의 경우 비어있음)
+    char operation;     // 'R' 또는 'W'
+    int lpn;            // Logical Page Number
+    int data;           // 데이터 (읽기의 경우 비어있음)
 };
 
 class FTLTest : public ::testing::TestWithParam<std::tuple<std::string, int, int>> {

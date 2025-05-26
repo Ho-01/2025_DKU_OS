@@ -24,7 +24,7 @@ void FTLTest::TearDown() {
     check_answer(ftl->get_name(), "flash_status");
     print_flash_status();
     print_mapping_table();
-    print_WAF_stats();  // WAF 통계 출력 추가
+    print_WAF_stats(); 
 }
 
 // 스케줄러 실행함수
@@ -212,7 +212,7 @@ void FTLTest::check_answer(const std::string& ftl_name, std::string suffix) {
     SHA256_Init(&sha256);
 
     if (ftl_name != "GreedyFTL") {
-        return 0; // GreedyFTL만 지원
+        return; // GreedyFTL만 정답 체크
     }
     if (suffix == "mapping_table"){
         int* data = ftl->L2P.data();
