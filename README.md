@@ -42,11 +42,11 @@ Implement scheduling techniques for CPU virtualization and compare their perform
 Implement concurrent data structure and compare their performance. 
 - [Lab2 Document](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/blob/main/%5BDKU_OS_LAB2%5D%20Concurrency.pdf)
 - Class 1
-  - [Google Form](https://forms.gle/ce1nCpRVUF8eDsjZA)
-  - Deadline: **2025.05.20 23:59**
+  - ~~[Google Form](https://forms.gle/ce1nCpRVUF8eDsjZA)~~
+  - ~~Deadline: **2025.05.20 23:59**~~
 - Class 3
-  - [Google Form](https://forms.gle/m3TUns69gZUXk3RT7)
-  - Deadline: **2025.05.21 23:59**
+  - ~~[Google Form](https://forms.gle/m3TUns69gZUXk3RT7)~~
+  - ~~Deadline: **2025.05.21 23:59**~~
  
 ## Lab3
 Implement FTLs by policy and compare their WAFs. 
