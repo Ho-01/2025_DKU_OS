@@ -58,6 +58,8 @@ Implement FTLs by policy and compare their WAFs.
   - [Google Form](https://forms.gle/7ZdD5r1GYRYz47qn7)
   - Deadline: **2025.06.11 23:59**
 
+**2025/06/04 Issue** - Additional Implementation Details [link](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/issues/3)
+
 ### Getting Start
 
 ```
