@@ -56,7 +56,7 @@ Implement FTLs by policy and compare their WAFs.
   - Deadline: **2025.06.15 23:59**
 - Class 3
   - [Google Form](https://forms.gle/7ZdD5r1GYRYz47qn7)
-  - Deadline: **2025.06.11 23:59**
+  - Deadline: **2025.06.18 23:59(Extended)**
 
 **2025/06/04 Issue** - Additional Implementation Details [link](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/issues/3)
 
