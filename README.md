@@ -53,7 +53,7 @@ Implement FTLs by policy and compare their WAFs.
 - [Lab3 Document](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/blob/52d9cc64108ac22231b27dcb46cf8a60ad4372f4/%5BDKU_OS_LAB3%5D%20Persistence.pdf)
 - Class 1
   - [Google Form](https://forms.gle/29FC5cStu3V2q4Kf7)
-  - Deadline: **2025.06.16 23:59(Extended)**
+  - Deadline: **2025.06.18 23:59(Extended)**
 - Class 3
   - [Google Form](https://forms.gle/7ZdD5r1GYRYz47qn7)
   - Deadline: **2025.06.18 23:59(Extended)**
