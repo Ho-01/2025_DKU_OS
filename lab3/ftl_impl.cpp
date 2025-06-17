@@ -79,7 +79,7 @@ void GreedyFTL::writePage(int logicalPage, int data) {
     // check free blocks
     int free_count = 0;
     for (auto &blk : blocks) if (blk.is_free) free_count++;
-    if (free_count <= 2) garbageCollect();
+    if (free_count <= 1) garbageCollect();
     
     // invalidate old page
     int old_ppn = L2P[logicalPage];
