@@ -39,6 +39,11 @@ void GreedyFTL::garbageCollect() {
     blocks[victim].invalid_page_cnt = 0;
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
+
+    // Reset active to victim so relocation uses victim block first
+    active_block = victim;
+    active_offset = 0;
+    blocks[active_block].is_free = false;
     
     // Relocate valid pages starting from current active
     for (auto &vp : valid_pages) {
