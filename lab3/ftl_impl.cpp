@@ -12,7 +12,7 @@
 #include <iostream>
 
 void GreedyFTL::garbageCollect() {
-    // 1) Select victim block: block with the most invalid pages
+    // Select victim: block with max invalid pages
     int victim = -1;
     int max_invalid = 0;
     for (int i = 0; i < total_blocks; ++i) {
@@ -21,32 +21,36 @@ void GreedyFTL::garbageCollect() {
             victim = i;
         }
     }
-    // If no invalid pages, skip GC
+    // No invalid pages -> skip
     if (victim < 0 || max_invalid == 0) return;
-
-    // 2) Collect valid pages from victim
+    
+    // Collect valid pages
     std::vector<std::pair<int,int>> valid_pages;
     for (int j = 0; j < block_size; ++j) {
         Page &p = blocks[victim].pages[j];
-        if (p.state == VALID) valid_pages.emplace_back(p.logical_page_num, p.data);
+        if (p.state == VALID) {
+            valid_pages.emplace_back(p.logical_page_num, p.data);
+        }
     }
 
-    // 3) Erase victim block
-    for (int j = 0; j < block_size; ++j) blocks[victim].pages[j] = Page();
+    // Erase victim
+    for (int j = 0; j < block_size; ++j) {
+        blocks[victim].pages[j] = Page();
+    }
     blocks[victim].valid_page_cnt = 0;
     blocks[victim].invalid_page_cnt = 0;
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
 
-    // 4) Reset active to victim for relocation
+    // Start relocation at victim
     active_block = victim;
     active_offset = 0;
     blocks[active_block].is_free = false;
 
-    // 5) Relocate valid pages
+    // Relocate valid pages
     for (auto &vp : valid_pages) {
+        // If active full, pick lowest-index free
         if (active_offset >= block_size) {
-            // pick next free block by ascending index
             for (int b = 0; b < total_blocks; ++b) {
                 if (blocks[b].is_free) {
                     active_block = b;
@@ -72,34 +76,13 @@ void GreedyFTL::garbageCollect() {
 }
 
 void GreedyFTL::writePage(int logicalPage, int data) {
+    // Host write
     total_logical_writes++;
+    
     // Trigger GC if free blocks <= 2
     int free_count = 0;
     for (auto &blk : blocks) if (blk.is_free) free_count++;
     if (free_count <= 2) garbageCollect();
-            }
-        }
-        int logPage = vp.first;
-        int dat = vp.second;
-        int ppn = active_block * block_size + active_offset;
-        Page &np = blocks[active_block].pages[active_offset];
-        np.state = VALID;
-        np.logical_page_num = logPage;
-        np.data = dat;
-        blocks[active_block].valid_page_cnt++;
-        L2P[logPage] = ppn;
-        total_physical_writes++;
-        blocks[active_block].last_write_time = static_cast<int>(total_logical_writes);
-        active_offset++;
-    }
-}
-
-void GreedyFTL::writePage(int logicalPage, int data) {
-    total_logical_writes++;
-    // Trigger GC if free blocks <= 1
-    int free_count = 0;
-    for (auto &blk : blocks) if (blk.is_free) free_count++;
-    if (free_count <= 1) garbageCollect();
 
     // Invalidate old mapping
     int old_ppn = L2P[logicalPage];
@@ -156,15 +139,18 @@ void GreedyFTL::readPage(int logicalPage) {
 
 // CostBenefitFTL Implementation
 void CostBenefitFTL::garbageCollect() {
-    // Select blocks with max invalid pages
+    // Determine max invalid
     int max_invalid = 0;
-    for (int i = 0; i < total_blocks; ++i)
+    for (int i = 0; i < total_blocks; ++i) {
         if (!blocks[i].is_free) max_invalid = std::max(max_invalid, blocks[i].invalid_page_cnt);
+    }
     if (max_invalid == 0) return;
-    // Collect candidates
+
+    // Candidates
     std::vector<int> cands;
-    for (int i = 0; i < total_blocks; ++i)
+    for (int i = 0; i < total_blocks; ++i) {
         if (!blocks[i].is_free && blocks[i].invalid_page_cnt == max_invalid) cands.push_back(i);
+    }
     // Select oldest
     int victim = cands[0];
     int min_time = blocks[victim].last_write_time;
@@ -174,18 +160,21 @@ void CostBenefitFTL::garbageCollect() {
             min_time = blocks[idx].last_write_time;
         }
     }
+
     // Collect valid pages
     std::vector<std::pair<int,int>> valid_pages;
     for (int j = 0; j < block_size; ++j) {
         Page &p = blocks[victim].pages[j];
         if (p.state == VALID) valid_pages.emplace_back(p.logical_page_num, p.data);
     }
+
     // Erase victim
     for (int j = 0; j < block_size; ++j) blocks[victim].pages[j] = Page();
     blocks[victim].valid_page_cnt = 0;
     blocks[victim].invalid_page_cnt = 0;
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
+
     // Relocate valid pages
     for (auto &vp : valid_pages) {
         if (active_offset >= block_size) {
@@ -218,6 +207,7 @@ void CostBenefitFTL::writePage(int logicalPage, int data) {
     int free_count = 0;
     for (auto &blk : blocks) if (blk.is_free) free_count++;
     if (free_count <= 2) garbageCollect();
+
     int old_ppn = L2P[logicalPage];
     if (old_ppn >= 0) {
         int ob = old_ppn / block_size;
@@ -229,6 +219,7 @@ void CostBenefitFTL::writePage(int logicalPage, int data) {
             blocks[ob].invalid_page_cnt++;
         }
     }
+
     if (active_offset >= block_size) {
         for (int i = 0; i < total_blocks; ++i) {
             if (blocks[i].is_free) {
