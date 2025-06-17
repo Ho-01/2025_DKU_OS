@@ -42,12 +42,10 @@ void GreedyFTL::garbageCollect() {
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
 
-    // 4) Reset active block to the freed victim block
-    active_block = victim;
-    active_offset = 0;
-    blocks[active_block].is_free = false;
+    // 4) After erase, victim block is free, but keep current active block/offset
+    //    Relocate valid pages into current active block or next free blocks
 
-    // 5) Copy valid pages into the new active block (and beyond)
+    // 5) Copy valid pages into active block(s) into the new active block (and beyond)
     for (auto &vp : valid_pages) {
         int logPage = vp.first;
         int dat     = vp.second;
