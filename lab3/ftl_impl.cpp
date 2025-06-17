@@ -245,4 +245,3 @@ void CostBenefitFTL::readPage(int logicalPage) {
         std::cout << p.data << std::endl;
     }
 }
-
