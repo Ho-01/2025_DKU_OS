@@ -31,8 +31,8 @@ Implement scheduling techniques for CPU virtualization and compare their perform
   - ~~[Google Form](https://forms.gle/XGvaHxAuXT39XUkR6)~~
   - ~~Deadline: **2025.04.22 23:59**~~
 - Class 3
-  - [Google Form](https://forms.gle/HXSmrauZpNmPu1co7)
-  - Deadline: **2025.05.02 23:59**
+  - ~~[Google Form](https://forms.gle/HXSmrauZpNmPu1co7)~~
+  - ~~Deadline: **2025.05.02 23:59**~~
  
 **02025/04/08 Issue** - Makefile [link](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/issues/1)
 
@@ -41,9 +41,24 @@ Implement scheduling techniques for CPU virtualization and compare their perform
 ## Lab2
 Implement concurrent data structure and compare their performance. 
 - [Lab2 Document](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/blob/main/%5BDKU_OS_LAB2%5D%20Concurrency.pdf)
+- Class 1
+  - ~~[Google Form](https://forms.gle/ce1nCpRVUF8eDsjZA)~~
+  - ~~Deadline: **2025.05.20 23:59**~~
 - Class 3
-  - [Google Form](https://forms.gle/m3TUns69gZUXk3RT7)
-  - Deadline: **2025.05.14 23:59**
+  - ~~[Google Form](https://forms.gle/m3TUns69gZUXk3RT7)~~
+  - ~~Deadline: **2025.05.21 23:59**~~
+ 
+## Lab3
+Implement FTLs by policy and compare their WAFs. 
+- [Lab3 Document](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/blob/52d9cc64108ac22231b27dcb46cf8a60ad4372f4/%5BDKU_OS_LAB3%5D%20Persistence.pdf)
+- Class 1
+  - [Google Form](https://forms.gle/29FC5cStu3V2q4Kf7)
+  - Deadline: **2025.06.18 23:59(Extended)**
+- Class 3
+  - [Google Form](https://forms.gle/7ZdD5r1GYRYz47qn7)
+  - Deadline: **2025.06.18 23:59(Extended)**
+
+**2025/06/04 Issue** - Additional Implementation Details [link](https://github.com/DKU-EmbeddedSystem-Lab/2025_DKU_OS/issues/3)
 
 ### Getting Start
 
