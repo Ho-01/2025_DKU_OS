@@ -45,20 +45,36 @@ void GreedyFTL::garbageCollect() {
     // 4) After erase, victim block is free, but keep current active block/offset
     //    Relocate valid pages into current active block or next free blocks
 
-    // 5) Copy valid pages into active block(s) into the new active block (and beyond)
+    // 5) Copy valid pages into the remaining blocks, scanning circularly from current active
     for (auto &vp : valid_pages) {
         int logPage = vp.first;
         int dat     = vp.second;
-
-        // Allocate new free block if current active is full
+        // If active block is full, pick next free block circularly
         if (active_offset >= block_size) {
-            for (int b = 0; b < total_blocks; ++b) {
+            for (int k = 1; k <= total_blocks; ++k) {
+                int b = (active_block + k) % total_blocks;
                 if (blocks[b].is_free) {
                     active_block = b;
                     active_offset = 0;
                     blocks[b].is_free = false;
                     break;
                 }
+            }
+        }
+        // Perform relocation write
+        int ppn = active_block * block_size + active_offset;
+        Page &np = blocks[active_block].pages[active_offset];
+        np.state = VALID;
+        np.logical_page_num = logPage;
+        np.data = dat;
+        blocks[active_block].valid_page_cnt++;
+        blocks[active_block].is_free = false;
+        L2P[logPage] = ppn;
+        total_physical_writes++;
+        blocks[active_block].last_write_time = (int)total_logical_writes;
+        active_offset++;
+    }
+}
             }
         }
         // Physical write of valid page
