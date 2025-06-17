@@ -12,28 +12,7 @@
 #include <iostream>
 
 void GreedyFTL::garbageCollect() {
-    // Select victim block with maximum invalid pages
-    int victim = -1;
-    int max_invalid = -1;
-    for (int i = 0; i < total_blocks; ++i) {
-        if (!blocks[i].is_free && blocks[i].invalid_page_cnt > max_invalid) {
-            max_invalid = blocks[i].invalid_page_cnt;
-            victim = i;
-        }
-    }
-    // Only perform GC if there is at least one invalid page
-    if (victim < 0 || max_invalid <= 0) return;
-
-    // Select victim block with maximum invalid pages
-    int victim = -1;
-    int max_invalid = -1;
-    for (int i = 0; i < total_blocks; ++i) {
-        if (!blocks[i].is_free && blocks[i].invalid_page_cnt > max_invalid) {
-            max_invalid = blocks[i].invalid_page_cnt;
-            victim = i;
-        }
-    }
-    if (victim < 0) return;
+    
     
     // Collect valid pages
     std::vector<std::pair<int,int>> valid_pages;
