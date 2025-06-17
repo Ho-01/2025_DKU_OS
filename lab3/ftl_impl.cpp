@@ -12,7 +12,6 @@
 #include <iostream>
 
 void GreedyFTL::garbageCollect() {
-    // 1. victim 선정: 가장 invalid 많은 사용중 블록
     int victim = -1, max_invalid = -1;
     for (int i = 0; i < total_blocks; ++i) {
         if (!blocks[i].is_free && blocks[i].invalid_page_cnt > max_invalid) {
@@ -37,7 +36,7 @@ void GreedyFTL::garbageCollect() {
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
 
-    // 4. active_block이 victim과 같으면 새로운 free block 선택
+    // 4. active_block이 victim과 같거나 가득 찼으면 새 free block 선택
     if (active_block == victim || active_offset >= block_size) {
         for (int b = 0; b < total_blocks; ++b) {
             if (blocks[b].is_free) {
@@ -51,7 +50,6 @@ void GreedyFTL::garbageCollect() {
 
     // 5. valid 페이지들 재기록
     for (auto &vp : valid_pages) {
-        // active_block이 full이면 다음 free block 할당
         if (active_offset >= block_size) {
             for (int b = 0; b < total_blocks; ++b) {
                 if (blocks[b].is_free) {
@@ -77,6 +75,7 @@ void GreedyFTL::garbageCollect() {
     }
 }
 
+// Write a page
 void GreedyFTL::writePage(int logicalPage, int data) {
     total_logical_writes++;
     int free_cnt = 0;
@@ -95,7 +94,6 @@ void GreedyFTL::writePage(int logicalPage, int data) {
             blocks[b].invalid_page_cnt++;
         }
     }
-
     // active block full 처리
     if (active_offset >= block_size || blocks[active_block].is_free) {
         for (int b = 0; b < total_blocks; ++b) {
@@ -119,7 +117,6 @@ void GreedyFTL::writePage(int logicalPage, int data) {
     blocks[active_block].last_write_time = static_cast<int>(total_logical_writes);
     active_offset++;
 }
-
 
 // Read a page
 void GreedyFTL::readPage(int logicalPage) {
