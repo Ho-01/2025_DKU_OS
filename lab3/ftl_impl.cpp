@@ -8,11 +8,22 @@
 
 #include "ftl_impl.h"
 #include <algorithm>
-#include <limits>
 #include <vector>
 #include <iostream>
 
 void GreedyFTL::garbageCollect() {
+    // Select victim block with maximum invalid pages
+    int victim = -1;
+    int max_invalid = -1;
+    for (int i = 0; i < total_blocks; ++i) {
+        if (!blocks[i].is_free && blocks[i].invalid_page_cnt > max_invalid) {
+            max_invalid = blocks[i].invalid_page_cnt;
+            victim = i;
+        }
+    }
+    // Only perform GC if there is at least one invalid page
+    if (victim < 0 || max_invalid <= 0) return;
+
     // Select victim block with maximum invalid pages
     int victim = -1;
     int max_invalid = -1;
@@ -79,7 +90,7 @@ void GreedyFTL::writePage(int logicalPage, int data) {
     // check free blocks
     int free_count = 0;
     for (auto &blk : blocks) if (blk.is_free) free_count++;
-    if (free_count <= 1) garbageCollect();
+    if (free_count <= 2) garbageCollect();
     
     // invalidate old page
     int old_ppn = L2P[logicalPage];
