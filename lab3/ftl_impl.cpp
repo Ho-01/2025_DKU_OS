@@ -46,15 +46,37 @@ void GreedyFTL::garbageCollect() {
     // 5) Relocate valid pages
     for (auto &vp : valid_pages) {
         if (active_offset >= block_size) {
-            // find next free block
-            for (int k = 1; k <= total_blocks; ++k) {
-                int b = (active_block + k) % total_blocks;
+            // pick next free block by ascending index
+            for (int b = 0; b < total_blocks; ++b) {
                 if (blocks[b].is_free) {
                     active_block = b;
                     active_offset = 0;
                     blocks[b].is_free = false;
                     break;
                 }
+            }
+        }
+        int logPage = vp.first;
+        int dat = vp.second;
+        int ppn = active_block * block_size + active_offset;
+        Page &np = blocks[active_block].pages[active_offset];
+        np.state = VALID;
+        np.logical_page_num = logPage;
+        np.data = dat;
+        blocks[active_block].valid_page_cnt++;
+        L2P[logPage] = ppn;
+        total_physical_writes++;
+        blocks[active_block].last_write_time = static_cast<int>(total_logical_writes);
+        active_offset++;
+    }
+}
+
+void GreedyFTL::writePage(int logicalPage, int data) {
+    total_logical_writes++;
+    // Trigger GC if free blocks <= 2
+    int free_count = 0;
+    for (auto &blk : blocks) if (blk.is_free) free_count++;
+    if (free_count <= 2) garbageCollect();
             }
         }
         int logPage = vp.first;
