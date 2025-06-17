@@ -42,11 +42,17 @@ void GreedyFTL::garbageCollect() {
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
 
-    // 4) Copy valid pages to active block(s)
+    // 4) Reset active block to the freed victim block
+    active_block = victim;
+    active_offset = 0;
+    blocks[active_block].is_free = false;
+
+    // 5) Copy valid pages into the new active block (and beyond)
     for (auto &vp : valid_pages) {
         int logPage = vp.first;
         int dat     = vp.second;
-        // Allocate new active block if needed
+
+        // Allocate new free block if current active is full
         if (active_offset >= block_size) {
             for (int b = 0; b < total_blocks; ++b) {
                 if (blocks[b].is_free) {
@@ -57,13 +63,13 @@ void GreedyFTL::garbageCollect() {
                 }
             }
         }
-        // Physical write
+        // Physical write of valid page
         int ppn = active_block * block_size + active_offset;
-        blocks[active_block].pages[active_offset].state = VALID;
-        blocks[active_block].pages[active_offset].logical_page_num = logPage;
-        blocks[active_block].pages[active_offset].data = dat;
+        Page &np = blocks[active_block].pages[active_offset];
+        np.state = VALID;
+        np.logical_page_num = logPage;
+        np.data = dat;
         blocks[active_block].valid_page_cnt++;
-        blocks[active_block].is_free = false;
         L2P[logPage] = ppn;
         total_physical_writes++;
         blocks[active_block].last_write_time = (int)total_logical_writes;
@@ -97,7 +103,7 @@ void GreedyFTL::writePage(int logicalPage, int data) {
         }
     }
 
-    // 4) Allocate in active block
+    // 4) Allocate in active block, switch if full
     if (active_offset >= block_size) {
         for (int b = 0; b < total_blocks; ++b) {
             if (blocks[b].is_free) {
@@ -141,7 +147,7 @@ void GreedyFTL::readPage(int logicalPage) {
     }
 }
 
-// CostBenefitFTL Implementation
+// CostBenefitFTL Implementation (unchanged)
 
 void CostBenefitFTL::garbageCollect() {
     // 1) Determine max invalid count across non-free blocks
@@ -190,7 +196,12 @@ void CostBenefitFTL::garbageCollect() {
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
 
-    // 6) Copy valid pages (same as Greedy)
+    // 6) Reset active block to victim
+    active_block = victim;
+    active_offset = 0;
+    blocks[active_block].is_free = false;
+
+    // 7) Copy valid pages
     for (auto &vp : valid_pages) {
         int logPage = vp.first;
         int dat     = vp.second;
@@ -209,7 +220,6 @@ void CostBenefitFTL::garbageCollect() {
         blocks[active_block].pages[active_offset].logical_page_num = logPage;
         blocks[active_block].pages[active_offset].data = dat;
         blocks[active_block].valid_page_cnt++;
-        blocks[active_block].is_free = false;
         L2P[logPage] = ppn;
         total_physical_writes++;
         blocks[active_block].last_write_time = (int)total_logical_writes;
@@ -218,7 +228,6 @@ void CostBenefitFTL::garbageCollect() {
 }
 
 void CostBenefitFTL::writePage(int logicalPage, int data) {
-    // Same as Greedy implementation
     total_logical_writes++;
     int free_count = 0;
     for (int i = 0; i < total_blocks; ++i) {
