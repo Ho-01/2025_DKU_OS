@@ -36,10 +36,15 @@ void GreedyFTL::garbageCollect() {
     blocks[victim].is_free = true;
     blocks[victim].gc_cnt++;
 
-    // Reset active to first free slot in victim
-    active_block = victim;
+    // Pick new active block: lowest-index free block
     active_offset = 0;
-    blocks[active_block].is_free = false;
+    for (int b = 0; b < total_blocks; ++b) {
+        if (blocks[b].is_free) {
+            active_block = b;
+            blocks[b].is_free = false;
+            break;
+        }
+    }
 
     // Relocate valid pages
     for (auto &vp : valid_pages) {
